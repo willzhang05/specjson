@@ -42,11 +42,13 @@ void get_cpu_info(FILE* ofp) {
     memset(path2, 0, BUF_SIZE);
     if(strcmp(type, "Darwin\n") == 0) {
         /*sysctlbyname*/
-        FILE* ifp =  popen("sysctl -n machdep.cpu.brand_string", "r"); //use sysctl()
-        FILE* ifp1 = popen("sysctl -n machdep.cpu.logical_per_package", "r");
+        FILE* ifp = malloc(BUF_SIZE);
+        sysctlbyname("HW_MACHINE", ifp, sizeof(ifp), NULL); //use sysctl()
+        FILE* ifp1 = malloc(BUF_SIZE);
+        sysctlbyname("HW_MODEL", ifp, sizeof(ifp), NULL); //use sysctl()
         FILE* ifp2 = popen("sysctl -n machdep.cpu.cores_per_package", "r");
+        sysctlbyname("HW_NCPU", ifp, sizeof(ifp), NULL); //use sysctl()
         if(!ifp || !ifp1 || !ifp2) {
-          perror("popen");
           exit(1);
         }
         fgets(path, BUF_SIZE, ifp); //use sscanf()
@@ -57,7 +59,7 @@ void get_cpu_info(FILE* ofp) {
         path2[strlen(path2)] = '\0';
         printf("%lu", strlen(path));
         add_tab(ofp, 8);
-        fprintf(ofp, "\"CPU\": \"%s\";\n", CTL_HW.HW_MACHINE);
+        fprintf(ofp, "\"CPU\": \"%s\";\n", path);
         add_tab(ofp, 8);
         fprintf(ofp, "\"Logical Cores\": \"%s\";\n", path1);
         add_tab(ofp, 8);
